@@ -20,10 +20,8 @@
         http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="hokifyJobBot" class="won.bot.jobbot.impl.JobBot">
-        <!-- optional property, by default one echo atom per each atom will be created -->
-
-        <property name="botContextWrapper" ref="botContextWrapper"/>
         <property name="taskScheduler" ref="taskScheduler"/>
+        <property name="botContextWrapper" ref="botContextWrapper"/>
         <!--property name="token" value="${hokifyjobbot.token}"/-->
         <property name="botName" value="${bot.name}"/>
         <property name="jsonURL" value="${hokifyjobbot.jsonURL}"/>
@@ -34,19 +32,11 @@
         <property name="atomProducer">
             <bean class="won.bot.framework.component.atomproducer.impl.NopAtomProducer" />
         </property>
-        <!--property name="atomProducer" ref="atomProducerFromMails" /-->
-        <!--property name="nodeURISource" ref="nodeUriSourceRandom" /-->
-        <!--<property name="matcherNodeURISource" ref="matcherNodeURISource"/>-->
-        <!--<property name="matcherUri" value="${matcher.uri}" />-->
-        <!-- expects a bean named "ownerProtocolAtomServiceClient" in the context -->
-        <!--property name="ownerService" ref="ownerProtocolAtomServiceClient" /-->
-        <!--<property name="matcherProtocolAtomServiceClient" ref="matcherProtocolAtomServiceClient"/>-->
-        <!--<property name="matcherProtocolMatcherService" ref="matcherProtocolMatcherServiceJMSBased"/>-->
         <property name="trigger">
             <bean class="org.springframework.scheduling.support.PeriodicTrigger">
                 <constructor-arg name="period" value="2000"/>
                 <constructor-arg name="timeUnit" value="MILLISECONDS"/>
-                <property name="initialDelay" value="2000"/> <!-- wait 10s at the beginning -->
+                <property name="initialDelay" value="2000"/> <!-- wait 2s at the beginning -->
                 <property name="fixedRate" value="false"/>  <!-- fixed delay after completion -->
             </bean>
         </property>
