@@ -1,6 +1,5 @@
 package won.bot.jobbot.actions;
 
-import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import won.bot.framework.eventbot.EventListenerContext;
@@ -11,7 +10,6 @@ import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEven
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.jobbot.context.JobBotContextWrapper;
 import won.protocol.model.Connection;
-import won.protocol.util.WonRdfUtils;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -39,8 +37,7 @@ public class Message2HokifyAction extends BaseEventBotAction {
             String respondWith = jobUrl != null ? "You need more information?\n Just follow this link: " + jobUrl
                             : "The job is no longer available, sorry!";
             try {
-                Model messageModel = WonRdfUtils.MessageUtils.textMessage(respondWith);
-                getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, messageModel));
+                getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, respondWith));
             } catch (Exception te) {
                 logger.error(te.getMessage());
             }
