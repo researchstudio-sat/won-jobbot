@@ -17,6 +17,9 @@
 /.settings/*
 .project
 
+#certs and keys
+*.jks
+
 #Target
 /target/*
 

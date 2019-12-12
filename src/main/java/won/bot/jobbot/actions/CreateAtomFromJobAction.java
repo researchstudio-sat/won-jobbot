@@ -1,5 +1,15 @@
 package won.bot.jobbot.actions;
 
+import java.lang.invoke.MethodHandles;
+import java.math.RoundingMode;
+import java.net.URI;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Random;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -8,6 +18,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.EventBotActionUtils;
 import won.bot.framework.eventbot.action.impl.atomlifecycle.AbstractCreateAtomAction;
@@ -29,16 +40,7 @@ import won.protocol.vocabulary.SCHEMA;
 import won.protocol.vocabulary.WONCON;
 import won.protocol.vocabulary.WONMATCH;
 import won.protocol.vocabulary.WXCHAT;
-
-import java.lang.invoke.MethodHandles;
-import java.math.RoundingMode;
-import java.net.URI;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Random;
+import won.protocol.vocabulary.WXHOLD;
 
 /**
  * Created by MS on 18.09.2018.
@@ -55,8 +57,7 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
 
     protected void doRun(Event event, EventListener executingListener) throws Exception {
         EventListenerContext ctx = getEventListenerContext();
-        if (event instanceof CreateAtomFromJobEvent
-                        && ctx.getBotContextWrapper() instanceof JobBotContextWrapper) {
+        if (event instanceof CreateAtomFromJobEvent && ctx.getBotContextWrapper() instanceof JobBotContextWrapper) {
             JobBotContextWrapper botContextWrapper = (JobBotContextWrapper) ctx.getBotContextWrapper();
             this.hokifyBotsApi = ((CreateAtomFromJobEvent) event).getHokifyBotsApi();
             ArrayList<HokifyJob> hokifyJobs = ((CreateAtomFromJobEvent) event).getHokifyJobs();
@@ -85,7 +86,7 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
     }
 
     protected boolean createAtomFromJob(EventListenerContext ctx, JobBotContextWrapper botContextWrapper,
-                                        HokifyJob hokifyJob) {
+            HokifyJob hokifyJob) {
         if (botContextWrapper.getAtomUriForJobURL(hokifyJob.getUrl()) != null) {
             logger.info("Atom already exists for job: {}", hokifyJob.getUrl());
             return false;
@@ -95,7 +96,7 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
             final URI atomURI = wonNodeInformationService.generateAtomURI(wonNodeUri);
             Dataset dataset = this.generateJobAtomStructure(atomURI, hokifyJob);
             logger.debug("creating atom on won node {} with content {} ", wonNodeUri,
-                            StringUtils.abbreviate(RdfUtils.toString(dataset), 150));
+                    StringUtils.abbreviate(RdfUtils.toString(dataset), 150));
             WonMessage createAtomMessage = ctx.getWonMessageSender().prepareMessage(createWonMessage(atomURI, dataset));
             EventBotActionUtils.rememberInList(ctx, atomURI, uriListName);
             botContextWrapper.addURIJobURLRelation(hokifyJob.getUrl(), atomURI);
@@ -106,14 +107,14 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
             };
             EventListener failureCallback = event -> {
                 String textMessage = WonRdfUtils.MessageUtils
-                                .getTextMessage(((FailureResponseEvent) event).getFailureMessage());
-                logger.error("atom creation failed for atom URI {}, original message URI {}: {}", new Object[] {
-                                atomURI, ((FailureResponseEvent) event).getOriginalMessageURI(), textMessage });
+                        .getTextMessage(((FailureResponseEvent) event).getFailureMessage());
+                logger.error("atom creation failed for atom URI {}, original message URI {}: {}",
+                        new Object[] { atomURI, ((FailureResponseEvent) event).getOriginalMessageURI(), textMessage });
                 EventBotActionUtils.removeFromList(ctx, atomURI, uriListName);
                 botContextWrapper.removeURIJobURLRelation(atomURI);
             };
             EventBotActionUtils.makeAndSubscribeResponseListener(createAtomMessage, successCallback, failureCallback,
-                            ctx);
+                    ctx);
             logger.debug("registered listeners for response to message URI {}", createAtomMessage.getMessageURI());
             ctx.getWonMessageSender().sendMessage(createAtomMessage);
             logger.debug("atom creation message sent with message URI {}", createAtomMessage.getMessageURI());
@@ -171,7 +172,7 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
             geoResource.addProperty(SCHEMA.LATITUDE, lat);
             geoResource.addProperty(SCHEMA.LONGITUDE, lng);
             RDFDatatype bigdata_geoSpatialDatatype = new BaseDatatype(
-                            "http://www.bigdata.com/rdf/geospatial/literals/v1#lat-lon");
+                    "http://www.bigdata.com/rdf/geospatial/literals/v1#lat-lon");
             geoResource.addProperty(WONCON.geoSpatial, lat + "#" + lng, bigdata_geoSpatialDatatype);
             jobLocation.addProperty(WONCON.boundingBox, boundingBoxResource);
             boundingBoxResource.addProperty(WONCON.northWestCorner, nwCornerResource);
@@ -199,6 +200,7 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
         }
         seeksPart.addProperty(RDF.type, SCHEMA.PERSON);
         seeksPart.addProperty(WONMATCH.seeks, SCHEMA.JOBPOSTING);
+        atomModelWrapper.addSocket("#HoldableSocket", WXHOLD.HoldableSocketString);
         atomModelWrapper.addSocket("#ChatSocket", WXCHAT.ChatSocketString);
         atomModelWrapper.setDefaultSocket("#ChatSocket");
         atomModelWrapper.addFlag(WONMATCH.NoHintForMe);
