@@ -1,14 +1,14 @@
 package won.bot.jobbot.context;
 
-import won.bot.framework.bot.context.BotContext;
-import won.bot.framework.bot.context.BotContextWrapper;
-
 import java.net.URI;
+
+import won.bot.framework.bot.context.BotContext;
+import won.bot.framework.extensions.serviceatom.ServiceAtomEnabledBotContextWrapper;
 
 /**
  * Created by MS on 24.09.2018.
  */
-public class JobBotContextWrapper extends BotContextWrapper {
+public class JobBotContextWrapper extends ServiceAtomEnabledBotContextWrapper {
     private String uriJobURLRelationsName;
     private String jobUrlUriRelationsName;
 
