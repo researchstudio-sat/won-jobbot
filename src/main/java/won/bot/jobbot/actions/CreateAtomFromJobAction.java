@@ -69,8 +69,8 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
     }
 
     protected boolean createAtomFromJob(EventListenerContext ctx, JobBotContextWrapper botContextWrapper,
-                    HokifyJob hokifyJob) {
-        if (botContextWrapper.getAtomUriForJobURL(hokifyJob.getUrl()) != null) {
+            HokifyJob hokifyJob) {
+        if (botContextWrapper.getAtomForJob(hokifyJob.getUrl()) != null) {
             logger.info("Atom already exists for job: {}", hokifyJob.getUrl());
             return false;
         } else {
@@ -79,10 +79,10 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
             final URI atomURI = wonNodeInformationService.generateAtomURI(wonNodeUri);
             Dataset dataset = new JobAtomModelWrapper(atomURI, hokifyJob).copyDataset();
             logger.debug("creating atom on won node {} with content {} ", wonNodeUri,
-                            StringUtils.abbreviate(RdfUtils.toString(dataset), 150));
+                    StringUtils.abbreviate(RdfUtils.toString(dataset), 150));
             WonMessage createAtomMessage = ctx.getWonMessageSender().prepareMessage(createWonMessage(atomURI, dataset));
             EventBotActionUtils.rememberInList(ctx, atomURI, uriListName);
-            botContextWrapper.addURIJobURLRelation(hokifyJob.getUrl(), atomURI);
+            botContextWrapper.addAtomJobRelation(hokifyJob.getUrl(), atomURI);
             EventBus bus = ctx.getEventBus();
             EventListener successCallback = event -> {
                 logger.debug("atom creation successful, new atom URI is {}", atomURI);
@@ -90,15 +90,14 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
             };
             EventListener failureCallback = event -> {
                 String textMessage = WonRdfUtils.MessageUtils
-                                .getTextMessage(((FailureResponseEvent) event).getFailureMessage());
+                        .getTextMessage(((FailureResponseEvent) event).getFailureMessage());
                 logger.error("atom creation failed for atom URI {}, original message URI {}: {}",
-                                new Object[] { atomURI, ((FailureResponseEvent) event).getOriginalMessageURI(),
-                                                textMessage });
+                        new Object[] { atomURI, ((FailureResponseEvent) event).getOriginalMessageURI(), textMessage });
                 EventBotActionUtils.removeFromList(ctx, atomURI, uriListName);
-                botContextWrapper.removeURIJobURLRelation(atomURI);
+                botContextWrapper.removeAtomJobRelation(atomURI);
             };
             EventBotActionUtils.makeAndSubscribeResponseListener(createAtomMessage, successCallback, failureCallback,
-                            ctx);
+                    ctx);
             logger.debug("registered listeners for response to message URI {}", createAtomMessage.getMessageURI());
             ctx.getWonMessageSender().sendMessage(createAtomMessage);
             logger.debug("atom creation message sent with message URI {}", createAtomMessage.getMessageURI());

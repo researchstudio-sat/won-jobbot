@@ -28,14 +28,13 @@ public class Message2HokifyAction extends BaseEventBotAction {
     protected void doRun(Event event, EventListener executingListener) throws Exception {
         logger.info("MessageEvent received");
         EventListenerContext ctx = getEventListenerContext();
-        if (event instanceof MessageFromOtherAtomEvent
-                        && ctx.getBotContextWrapper() instanceof JobBotContextWrapper) {
+        if (event instanceof MessageFromOtherAtomEvent && ctx.getBotContextWrapper() instanceof JobBotContextWrapper) {
             JobBotContextWrapper botContextWrapper = (JobBotContextWrapper) ctx.getBotContextWrapper();
             Connection con = ((MessageFromOtherAtomEvent) event).getCon();
-            URI yourAtomUri = con.getAtomURI();
-            String jobUrl = botContextWrapper.getJobURLForURI(yourAtomUri);
+            URI atomUri = con.getAtomURI();
+            String jobUrl = botContextWrapper.getJobForAtom(atomUri);
             String respondWith = jobUrl != null ? "You need more information?\n Just follow this link: " + jobUrl
-                            : "The job is no longer available, sorry!";
+                    : "The job is no longer available, sorry!";
             try {
                 getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, respondWith));
             } catch (Exception te) {
