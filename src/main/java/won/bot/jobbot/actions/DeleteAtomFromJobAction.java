@@ -15,7 +15,7 @@ import won.bot.framework.eventbot.event.impl.wonmessage.FailureResponseEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.jobbot.api.model.HokifyJob;
 import won.bot.jobbot.context.JobBotContextWrapper;
-import won.bot.jobbot.event.CreateAtomFromJobEvent;
+import won.bot.jobbot.event.DeleteAtomFromJobEvent;
 import won.protocol.message.WonMessage;
 import won.protocol.util.WonRdfUtils;
 
@@ -32,13 +32,12 @@ public class DeleteAtomFromJobAction extends AbstractDeleteAtomAction {
 
     protected void doRun(Event event, EventListener executingListener) throws Exception {
         EventListenerContext ctx = getEventListenerContext();
-        if (event instanceof CreateAtomFromJobEvent && ctx.getBotContextWrapper() instanceof JobBotContextWrapper) {
+        if (event instanceof DeleteAtomFromJobEvent && ctx.getBotContextWrapper() instanceof JobBotContextWrapper) {
             JobBotContextWrapper botContextWrapper = (JobBotContextWrapper) ctx.getBotContextWrapper();
-            ArrayList<HokifyJob> hokifyJobs = ((CreateAtomFromJobEvent) event).getHokifyJobs();
+            ArrayList<HokifyJob> hokifyJobs = ((DeleteAtomFromJobEvent) event).getHokifyJobs();
             // generate IndexList from JobURLs
             ArrayList<String> jobsIndexList = new ArrayList<String>();
             hokifyJobs.forEach((HokifyJob job) -> jobsIndexList.add(job.getUrl()));
-            System.out.println("TEST me" + jobsIndexList);
             try {
                 ArrayList<String> jobsInDb = botContextWrapper.getAllJobs();
                 logger.info("Check all jobs if still available");
@@ -50,7 +49,6 @@ public class DeleteAtomFromJobAction extends AbstractDeleteAtomAction {
                         logger.debug("deleting atom on won node {} with uri {} ", wonNodeUri, atomURI);
                         WonMessage deleteAtomMessage = ctx.getWonMessageSender()
                                 .prepareMessage(buildWonMessage(atomURI));
-
                         EventListener successCallback = new EventListener() {
                             @Override
                             public void onEvent(Event event) {
