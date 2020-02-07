@@ -10,6 +10,7 @@ import org.apache.jena.query.Dataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import won.bot.framework.bot.context.BotContextWrapper;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.EventBotActionUtils;
 import won.bot.framework.eventbot.action.impl.atomlifecycle.AbstractCreateAtomAction;
@@ -32,7 +33,7 @@ import won.protocol.util.WonRdfUtils;
  */
 public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private boolean createAllInOne;
+    private final boolean createAllInOne;
 
     public CreateAtomFromJobAction(EventListenerContext eventListenerContext, boolean createAllInOne) {
         super(eventListenerContext);
@@ -81,7 +82,7 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
             logger.debug("creating atom on won node {} with content {} ", wonNodeUri,
                             StringUtils.abbreviate(RdfUtils.toString(dataset), 150));
             WonMessage createAtomMessage = ctx.getWonMessageSender().prepareMessage(createWonMessage(atomURI, dataset));
-            EventBotActionUtils.rememberInList(ctx, atomURI, uriListName);
+            botContextWrapper.rememberAtomUri(atomURI);
             botContextWrapper.addURIJobURLRelation(hokifyJob.getUrl(), atomURI);
             EventBus bus = ctx.getEventBus();
             EventListener successCallback = event -> {
@@ -92,9 +93,9 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
                 String textMessage = WonRdfUtils.MessageUtils
                                 .getTextMessage(((FailureResponseEvent) event).getFailureMessage());
                 logger.error("atom creation failed for atom URI {}, original message URI {}: {}",
-                                new Object[] { atomURI, ((FailureResponseEvent) event).getOriginalMessageURI(),
-                                                textMessage });
-                EventBotActionUtils.removeFromList(ctx, atomURI, uriListName);
+                        atomURI, ((FailureResponseEvent) event).getOriginalMessageURI(),
+                        textMessage);
+                botContextWrapper.removeAtomUri(atomURI);
                 botContextWrapper.removeURIJobURLRelation(atomURI);
             };
             EventBotActionUtils.makeAndSubscribeResponseListener(createAtomMessage, successCallback, failureCallback,

@@ -23,7 +23,7 @@ import won.bot.jobbot.api.model.HokifyJob;
  * @author MS Handles all needed webrequests
  */
 public class HokifyBotsApi {
-    private String jsonURL;
+    private final String jsonURL;
     private static String geoURL;
 
     public HokifyBotsApi(String jsonURL, String geoURL) {
@@ -55,10 +55,6 @@ public class HokifyBotsApi {
                     HokifyJob tmpJob = objectMapper.readValue(jobArray.getJSONObject(count).toString(),
                                     HokifyJob.class);
                     jobsList.add(tmpJob);
-                } catch (JsonParseException e) {
-                    e.printStackTrace();
-                } catch (JsonMappingException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

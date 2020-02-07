@@ -9,8 +9,8 @@ import won.bot.framework.extensions.serviceatom.ServiceAtomEnabledBotContextWrap
  * Created by MS on 24.09.2018.
  */
 public class JobBotContextWrapper extends ServiceAtomEnabledBotContextWrapper {
-    private String uriJobURLRelationsName;
-    private String jobUrlUriRelationsName;
+    private final String uriJobURLRelationsName;
+    private final String jobUrlUriRelationsName;
 
     public JobBotContextWrapper(BotContext botContext, String botName) {
         super(botContext, botName);
