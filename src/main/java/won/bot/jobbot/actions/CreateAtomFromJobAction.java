@@ -82,6 +82,7 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
             logger.debug("creating atom on won node {} with content {} ", wonNodeUri,
                     StringUtils.abbreviate(RdfUtils.toString(dataset), 150));
             WonMessage createAtomMessage = ctx.getWonMessageSender().prepareMessage(createWonMessage(atomURI, dataset));
+
             botContextWrapper.rememberAtomUri(atomURI);
             botContextWrapper.addAtomJobRelation(hokifyJob.getUrl(), atomURI);
             EventBus bus = ctx.getEventBus();
@@ -95,6 +96,7 @@ public class CreateAtomFromJobAction extends AbstractCreateAtomAction {
                 logger.error("atom creation failed for atom URI {}, original message URI {}: {}", atomURI,
                         ((FailureResponseEvent) event).getOriginalMessageURI(), textMessage);
                 botContextWrapper.removeAtomUri(atomURI);
+
                 botContextWrapper.removeAtomJobRelation(atomURI);
             };
             EventBotActionUtils.makeAndSubscribeResponseListener(createAtomMessage, successCallback, failureCallback,
