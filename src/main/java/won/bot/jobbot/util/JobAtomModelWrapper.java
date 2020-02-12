@@ -77,7 +77,7 @@ public class JobAtomModelWrapper extends DefaultAtomModelWrapper {
             geoResource.addProperty(SCHEMA.LATITUDE, lat);
             geoResource.addProperty(SCHEMA.LONGITUDE, lng);
             RDFDatatype bigdata_geoSpatialDatatype = new BaseDatatype(
-                            "http://www.bigdata.com/rdf/geospatial/literals/v1#lat-lon");
+                    "http://www.bigdata.com/rdf/geospatial/literals/v1#lat-lon");
             geoResource.addProperty(WONCON.geoSpatial, lat + "#" + lng, bigdata_geoSpatialDatatype);
             jobLocation.addProperty(WONCON.boundingBox, boundingBoxResource);
             boundingBoxResource.addProperty(WONCON.northWestCorner, nwCornerResource);
@@ -99,7 +99,7 @@ public class JobAtomModelWrapper extends DefaultAtomModelWrapper {
         for (Object field : job.getField()) {
             atom.addProperty(SCHEMA.INDUSTRY, parseField(field));
         }
-        String[] tags = { "job", "hokify", "offer-job" };
+        String[] tags = { "job", "hokify", "job offer" };
         for (String tag : tags) {
             atom.addProperty(WONCON.tag, tag);
         }

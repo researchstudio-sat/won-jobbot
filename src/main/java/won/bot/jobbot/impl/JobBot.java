@@ -28,10 +28,12 @@ import won.bot.framework.extensions.serviceatom.ServiceAtomBehaviour;
 import won.bot.framework.extensions.serviceatom.ServiceAtomExtension;
 import won.bot.jobbot.actions.Connect2HokifyAction;
 import won.bot.jobbot.actions.CreateAtomFromJobAction;
+import won.bot.jobbot.actions.DeleteAtomFromJobAction;
 import won.bot.jobbot.actions.Message2HokifyAction;
 import won.bot.jobbot.api.HokifyBotsApi;
 import won.bot.jobbot.api.model.HokifyJob;
 import won.bot.jobbot.event.CreateAtomFromJobEvent;
+import won.bot.jobbot.event.DeleteAtomFromJobEvent;
 import won.bot.jobbot.event.FetchHokifyJobDataEvent;
 import won.bot.jobbot.event.StartHokifyFetchEvent;
 
@@ -70,7 +72,6 @@ public class JobBot extends EventBot implements ServiceAtomExtension {
         serviceAtomBehaviour.activate();
 
         // Create atoms
-        bus.subscribe(CreateAtomFromJobEvent.class, new CreateAtomFromJobAction(ctx, this.createAllInOne));
         BotTrigger createHokifyJobBotTrigger = new BotTrigger(ctx, Duration.ofMinutes(publishTime));
         createHokifyJobBotTrigger.activate();
         bus.subscribe(StartHokifyFetchEvent.class, new ActionOnFirstEventListener(ctx,
@@ -94,11 +95,16 @@ public class JobBot extends EventBot implements ServiceAtomExtension {
                     protected void doRun(Event event, EventListener executingListener) throws Exception {
                         logger.info("Update Hokify Job Data");
                         hokifyJobsList = hokifyBotsApi.fetchHokifyData();
+
+                        // remove outdated jobs
+                        bus.publish(new DeleteAtomFromJobEvent(hokifyJobsList));
                     }
                 }));
 
-        // filter to prevent reacting to serviceAtom<->ownedAtom events;
+        // Filter to prevent reacting to serviceAtom<->ownedAtom events;
         NotFilter noInternalServiceAtomEventFilter = getNoInternalServiceAtomEventFilter();
+        bus.subscribe(CreateAtomFromJobEvent.class, new CreateAtomFromJobAction(ctx, this.createAllInOne));
+        bus.subscribe(DeleteAtomFromJobEvent.class, new DeleteAtomFromJobAction(ctx));
         bus.subscribe(ConnectFromOtherAtomEvent.class, noInternalServiceAtomEventFilter, new Connect2HokifyAction(ctx));
         bus.subscribe(MessageFromOtherAtomEvent.class, new Message2HokifyAction(ctx));
         bus.publish(new StartHokifyFetchEvent());
